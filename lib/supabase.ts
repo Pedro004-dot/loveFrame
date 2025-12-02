@@ -1,9 +1,51 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Lazy initialization to avoid errors during build/prerender
+let supabaseClient: SupabaseClient | null = null
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const getSupabaseClient = (): SupabaseClient => {
+  // During build/prerender, return a mock client if env vars are not available
+  if (typeof window === 'undefined') {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      // Return a mock client during build to avoid errors
+      // This will only be used during SSR/build, not at runtime
+      return {} as SupabaseClient
+    }
+  }
+
+  if (supabaseClient) {
+    return supabaseClient
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase environment variables. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+    )
+  }
+
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  return supabaseClient
+}
+
+// Export a getter that initializes on first access (for backward compatibility)
+// Use a Proxy to lazily initialize the client
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseClient()
+    const value = (client as any)[prop]
+    // If it's a function, bind it to the client
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  }
+})
 
 // Database Types
 export interface Retrospective {
@@ -86,7 +128,8 @@ export const uploadToSupabaseStorage = async (
   bucket: string,
   path: string
 ): Promise<{ data: any; error: any }> => {
-  return await supabase.storage
+  const client = getSupabaseClient()
+  return await client.storage
     .from(bucket)
     .upload(path, file, {
       cacheControl: '3600',
@@ -95,7 +138,8 @@ export const uploadToSupabaseStorage = async (
 }
 
 export const getPublicUrl = (bucket: string, path: string): string => {
-  const { data } = supabase.storage
+  const client = getSupabaseClient()
+  const { data } = client.storage
     .from(bucket)
     .getPublicUrl(path)
   
@@ -106,7 +150,8 @@ export const deleteFromStorage = async (
   bucket: string,
   path: string
 ): Promise<{ data: any; error: any }> => {
-  return await supabase.storage
+  const client = getSupabaseClient()
+  return await client.storage
     .from(bucket)
     .remove([path])
 }
