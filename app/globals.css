@@ -24,3 +24,106 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom styles for React DatePicker */
+.react-datepicker {
+  border: 2px solid rgb(196 181 253);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.react-datepicker__header {
+  background: linear-gradient(to right, rgb(147 51 234), rgb(236 72 153));
+  border-radius: 0.75rem 0.75rem 0 0;
+  border: none;
+}
+
+.react-datepicker__current-month {
+  color: white;
+  font-weight: 600;
+}
+
+.react-datepicker__navigation {
+  top: 8px;
+}
+
+.react-datepicker__navigation--previous {
+  border-right: 4px solid white;
+}
+
+.react-datepicker__navigation--next {
+  border-left: 4px solid white;
+}
+
+.react-datepicker__day-names {
+  border: none;
+}
+
+.react-datepicker__day-name {
+  color: rgb(147 51 234);
+  font-weight: 600;
+}
+
+.react-datepicker__day {
+  border-radius: 0.25rem;
+}
+
+.react-datepicker__day:hover {
+  background-color: rgb(243 232 255);
+}
+
+.react-datepicker__day--selected {
+  background-color: rgb(147 51 234);
+  color: white;
+}
+
+.react-datepicker__day--selected:hover {
+  background-color: rgb(126 34 206);
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: rgb(243 232 255);
+}
+
+.react-datepicker__day--today {
+  background-color: rgb(252 231 243);
+  color: rgb(126 34 206);
+  font-weight: 600;
+}
+
+/* Custom slider styles for music player */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom animations for landing page */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
