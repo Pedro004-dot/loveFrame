@@ -76,6 +76,8 @@ export interface Retrospective {
   view_count: number
   creator_email?: string
   creator_ip?: string
+  has_wrapped?: boolean // Se comprou o pacote Wrapped
+  wrapped_enabled?: boolean // Se Wrapped está ativo
 }
 
 export interface YouTubeSongData {

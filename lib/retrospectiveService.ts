@@ -1,4 +1,4 @@
-import { supabase, type Retrospective, type YouTubeSongData } from './supabase'
+import { getSupabaseClient, type Retrospective, type YouTubeSongData } from './supabase'
 import { uploadToSupabaseStorage, getPublicUrl } from './supabase'
 
 export interface OnboardingFormData {
@@ -13,6 +13,8 @@ export interface OnboardingFormData {
   timeCounterPhoto: File | null
   specialMessage: string
   coupleGalleryPhotos: File[]
+  creatorEmail?: string
+  creatorPhone?: string
 }
 
 export class RetrospectiveService {
@@ -44,10 +46,12 @@ export class RetrospectiveService {
         payment_status: 'pending',
         is_active: true,
         is_published: false,
-        view_count: 0
+        view_count: 0,
+        creator_email: data.creatorEmail || undefined
       }
 
       // Insert retrospective
+      const supabase = getSupabaseClient()
       const { data: retrospective, error } = await supabase
         .from('retrospectives')
         .insert(retrospectiveData)
@@ -65,6 +69,7 @@ export class RetrospectiveService {
         
         if (photoPath) {
           // Update retrospective with photo path
+          const supabase = getSupabaseClient()
           const { error: updateError } = await supabase
             .from('retrospectives')
             .update({ cover_photo_path: photoPath })
@@ -84,6 +89,7 @@ export class RetrospectiveService {
         const musicPhotoPath = await this.uploadPhoto(retrospective.id, data.musicCoverPhoto, 'music-cover')
         
         if (musicPhotoPath) {
+          const supabase = getSupabaseClient()
           const { error: updateError } = await supabase
             .from('retrospectives')
             .update({ music_cover_photo_path: musicPhotoPath })
@@ -102,6 +108,7 @@ export class RetrospectiveService {
         const timePhotoPath = await this.uploadPhoto(retrospective.id, data.timeCounterPhoto, 'time-counter')
         
         if (timePhotoPath) {
+          const supabase = getSupabaseClient()
           const { error: updateError } = await supabase
             .from('retrospectives')
             .update({ time_counter_photo_path: timePhotoPath })
@@ -127,6 +134,7 @@ export class RetrospectiveService {
         
         // Store gallery paths as JSON array
         if (galleryPaths.length > 0) {
+          const supabase = getSupabaseClient()
           const { error: updateError } = await supabase
             .from('retrospectives')
             .update({ gallery_photos: galleryPaths })
@@ -172,6 +180,7 @@ export class RetrospectiveService {
       }
 
       // Create media file record
+      const supabase = getSupabaseClient()
       await supabase.from('media_files').insert({
         retrospective_id: retrospectiveId,
         file_type: 'image',
@@ -194,6 +203,7 @@ export class RetrospectiveService {
    * Get retrospective by unique ID
    */
   static async getByUniqueId(uniqueId: string): Promise<{ data: Retrospective | null, error: any }> {
+    const supabase = getSupabaseClient()
     return await supabase
       .from('retrospectives')
       .select('*')
@@ -208,6 +218,7 @@ export class RetrospectiveService {
     retrospectiveId: string, 
     status: 'completed' | 'failed' | 'cancelled'
   ): Promise<{ data: any, error: any }> {
+    const supabase = getSupabaseClient()
     const updateData: any = {
       payment_status: status,
       updated_at: new Date().toISOString()
@@ -220,6 +231,39 @@ export class RetrospectiveService {
       // Set expiration to 1 year from now
       updateData.expires_at = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
     }
+
+    return await supabase
+      .from('retrospectives')
+      .update(updateData)
+      .eq('id', retrospectiveId)
+  }
+
+  /**
+   * Get retrospectives by creator email
+   */
+  static async getByCreatorEmail(email: string): Promise<{ data: Retrospective[] | null, error: any }> {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('retrospectives')
+      .select('*')
+      .eq('creator_email', email)
+      .order('created_at', { ascending: false })
+    
+    return { data, error }
+  }
+
+  /**
+   * Update retrospective creator email
+   */
+  static async updateCreatorEmail(retrospectiveId: string, email: string, phone?: string): Promise<{ data: any, error: any }> {
+    const supabase = getSupabaseClient()
+    const updateData: any = {
+      creator_email: email,
+      updated_at: new Date().toISOString()
+    }
+
+    // Note: We don't have a phone field in the database yet, but we can add it later if needed
+    // For now, we'll just save the email
 
     return await supabase
       .from('retrospectives')
@@ -252,6 +296,7 @@ export class RetrospectiveService {
    */
   static async incrementViewCount(retrospectiveId: string): Promise<void> {
     try {
+      const supabase = getSupabaseClient()
       // Get current view count
       const { data: current, error: selectError } = await supabase
         .from('retrospectives')

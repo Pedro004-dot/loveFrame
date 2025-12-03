@@ -7,6 +7,8 @@ import { useState, useEffect, useRef } from 'react'
 interface PreviewCardProps {
   data: OnboardingData
   timeData: TimeData
+  onWrappedClick?: () => void
+  hasWrapped?: boolean
 }
 
 declare global {
@@ -16,7 +18,7 @@ declare global {
   }
 }
 
-export default function PreviewCard({ data, timeData }: PreviewCardProps) {
+export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped = false }: PreviewCardProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -443,8 +445,14 @@ export default function PreviewCard({ data, timeData }: PreviewCardProps) {
         <p className="text-white/90 text-sm mb-6">
           {data.userName ? `Explore o seu tempo em casal, ${data.userName}` : 'Explore o seu tempo em casal'}
         </p>
-        <button className="bg-white hover:bg-pink-50 text-pink-600 px-8 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
-          Vamos lá
+        <button 
+          onClick={hasWrapped && onWrappedClick ? onWrappedClick : undefined}
+          disabled={!hasWrapped || !onWrappedClick}
+          className={`bg-white hover:bg-pink-50 text-pink-600 px-8 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 ${
+            !hasWrapped || !onWrappedClick ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+          }`}
+        >
+          {hasWrapped ? 'Vamos lá' : 'Em breve'}
         </button>
       </div>
 

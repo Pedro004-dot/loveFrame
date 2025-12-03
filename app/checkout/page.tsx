@@ -6,6 +6,7 @@ import { ArrowLeft, Shield, Download, Link, QrCode, CreditCard } from 'lucide-re
 
 // Services
 import { RetrospectiveService } from '@/lib/retrospectiveService'
+import { WrappedService } from '@/lib/wrappedService'
 import type { Retrospective } from '@/lib/supabase'
 import type { OnboardingData } from '@/types/onboarding'
 import PreviewCard from '@/components/onboarding/PreviewCard'
@@ -32,17 +33,28 @@ function CheckoutContent() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null)
   const [wrappedAddon, setWrappedAddon] = useState(false)
 
-  // Mock payment form data
+  // Payment form data
   const [paymentData, setPaymentData] = useState({
     cardNumber: '',
     expiryDate: '',
     cvv: '',
     cardName: '',
-    email: ''
+    email: '',
+    phone: ''
   })
 
   useEffect(() => {
     loadDataAndRetrospective()
+    // Load saved email and phone from localStorage
+    const savedEmail = localStorage.getItem('userEmail')
+    const savedPhone = localStorage.getItem('userPhone')
+    if (savedEmail || savedPhone) {
+      setPaymentData(prev => ({
+        ...prev,
+        email: savedEmail || '',
+        phone: savedPhone || ''
+      }))
+    }
   }, [])
 
 
@@ -251,14 +263,68 @@ function CheckoutContent() {
       if (retrospectiveToUse) {
         try {
           await RetrospectiveService.updatePaymentStatus(retrospectiveToUse.id, 'completed')
+          
+          // Update creator email if provided
+          if (paymentData.email) {
+            try {
+              await RetrospectiveService.updateCreatorEmail(
+                retrospectiveToUse.id,
+                paymentData.email,
+                paymentData.phone
+              )
+              
+              // Save email and phone to localStorage for future identification
+              localStorage.setItem('userEmail', paymentData.email)
+              if (paymentData.phone) {
+                localStorage.setItem('userPhone', paymentData.phone)
+              }
+              
+              const storedData = localStorage.getItem('onboardingData')
+              if (storedData) {
+                try {
+                  const data = JSON.parse(storedData)
+                  data.creatorEmail = paymentData.email
+                  data.creatorPhone = paymentData.phone
+                  localStorage.setItem('onboardingData', JSON.stringify(data))
+                } catch (e) {
+                  console.error('Error saving email to localStorage:', e)
+                }
+              } else {
+                // Create new entry with email
+                localStorage.setItem('onboardingData', JSON.stringify({
+                  creatorEmail: paymentData.email,
+                  creatorPhone: paymentData.phone
+                }))
+              }
+            } catch (e) {
+              console.error('Error updating creator email:', e)
+            }
+          }
+          
+          // Update has_wrapped if user purchased wrapped addon
+          const storedData = localStorage.getItem('onboardingData')
+          if (storedData) {
+            try {
+              const data = JSON.parse(storedData)
+              if (data.wrappedAddon) {
+                await WrappedService.updateRetrospectiveWrappedStatus(
+                  retrospectiveToUse.id,
+                  true,
+                  true
+                )
+              }
+            } catch (e) {
+              console.error('Error updating wrapped status:', e)
+            }
+          }
         } catch (error) {
           // Não bloquear se falhar - pode ser que a retrospectiva ainda não esteja no banco
           console.warn('Could not update payment status:', error)
         }
       }
 
-      // Redirect to view page (landing page compartilhável)
-      router.push(`/view/${uniqueIdToUse}`)
+      // Redirect to dashboard after payment
+      router.push('/dashboard')
       
     } catch (error) {
       console.error('Error processing payment:', error)
@@ -272,7 +338,7 @@ function CheckoutContent() {
     setPaymentData(prev => ({ ...prev, [field]: value }))
   }
 
-  const isFormValid = true // Always allow for testing
+  const isFormValid = paymentData.email.trim().length > 0 && paymentData.email.includes('@')
 
   if (isLoading) {
     return (
@@ -399,6 +465,43 @@ function CheckoutContent() {
                 </div>
               </div>
 
+              {/* Contact Information */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Informações de Contato</h4>
+                <p className="text-xs text-gray-600 mb-4">
+                  Preencha seus dados para identificarmos sua retrospectiva
+                </p>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={paymentData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="seu@email.com"
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Telefone (opcional)
+                    </label>
+                    <input
+                      type="tel"
+                      value={paymentData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="(00) 00000-0000"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Test Mode Notice */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center space-x-2">
@@ -419,18 +522,21 @@ function CheckoutContent() {
         singleButton={true}
         singleButtonLabel={isProcessing ? 'Processando...' : 'Finalizar e Continuar'}
         singleButtonOnClick={handlePayment}
-        singleButtonDisabled={isProcessing}
-        singleButtonLoading={isProcessing}
+        singleButtonDisabled={!isFormValid || isProcessing}
         helperText={
-          <div className="text-center space-y-1">
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-              <Shield className="w-4 h-4" />
-              <span>Modo de teste ativo</span>
+          !isFormValid ? (
+            'Por favor, preencha seu email para continuar'
+          ) : (
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                <Shield className="w-4 h-4" />
+                <span>Modo de teste ativo</span>
+              </div>
+              <div className="text-xs text-gray-500">
+                Nenhum pagamento real será processado
+              </div>
             </div>
-            <div className="text-xs text-gray-500">
-              Nenhum pagamento real será processado
-            </div>
-          </div>
+          )
         }
       />
     </div>
