@@ -48,8 +48,8 @@ export default function Step7SpecialMessage({
         </div>
         
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">💡 Sugestões de mensagens:</p>
-          <div className="grid grid-cols-1 gap-2">
+          <p className="text-sm font-medium text-black">💡 Sugestões de mensagens:</p>
+          <div className="grid grid-cols-1 gap-2 text-black">
             {messageSuggestions.map((suggestion, index) => {
               const icons = ['✨', '💕', '🌟']
               return (

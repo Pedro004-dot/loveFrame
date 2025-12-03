@@ -9,6 +9,7 @@ interface PreviewCardProps {
   timeData: TimeData
   onWrappedClick?: () => void
   hasWrapped?: boolean
+  showMusicPreview?: boolean // Controla se deve mostrar preview da música
 }
 
 declare global {
@@ -18,13 +19,14 @@ declare global {
   }
 }
 
-export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped = false }: PreviewCardProps) {
+export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped = false, showMusicPreview = true }: PreviewCardProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const playerRef = useRef<any>(null)
   const [isPlayerReady, setIsPlayerReady] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [showFullMessage, setShowFullMessage] = useState(false)
 
   // Debug: verificar dados recebidos
   useEffect(() => {
@@ -69,26 +71,26 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
     if (isPlayerReady && data.selectedTrack && !playerRef.current) {
       // Create invisible player
       try {
-        playerRef.current = new window.YT.Player('youtube-player-hidden', {
-          height: '0',
-          width: '0',
-          videoId: data.selectedTrack.videoId,
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            iv_load_policy: 3,
-            modestbranding: 1,
-            playsinline: 1,
+      playerRef.current = new window.YT.Player('youtube-player-hidden', {
+        height: '0',
+        width: '0',
+        videoId: data.selectedTrack.videoId,
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          modestbranding: 1,
+          playsinline: 1,
             rel: 0,
             enablejsapi: 1
-          },
-          events: {
+        },
+        events: {
             onReady: (event: any) => {
-              console.log('YouTube player ready for background playback')
+            console.log('YouTube player ready for background playback')
               // Aguardar um pouco mais e verificar se o método está disponível
-              setTimeout(() => {
+            setTimeout(() => {
                 if (playerRef.current && typeof playerRef.current.getDuration === 'function') {
                   try {
                     const videoDuration = playerRef.current.getDuration()
@@ -98,16 +100,16 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
                   } catch (error) {
                     console.log('Error getting duration:', error)
                   }
-                }
+              }
               }, 1500)
-            },
-            onStateChange: (event: any) => {
-              if (event.data === window.YT.PlayerState.PLAYING) {
-                setIsPlaying(true)
-                startTimeTracking()
-              } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
-                setIsPlaying(false)
-                stopTimeTracking()
+          },
+          onStateChange: (event: any) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              setIsPlaying(true)
+              startTimeTracking()
+            } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+              setIsPlaying(false)
+              stopTimeTracking()
               }
             },
             onError: (event: any) => {
@@ -117,7 +119,7 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
         })
       } catch (error) {
         console.error('Error creating YouTube player:', error)
-      }
+        }
     }
 
     return () => {
@@ -226,11 +228,11 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
-        </button>
+          </button>
       </div>
 
       {/* Hero Card - Foto da Música com Player Sobreposto (Estilo Spotify/LovePanda) */}
-      {data.selectedTrack && (
+      {data.selectedTrack && showMusicPreview && (
         <div className="relative w-full aspect-[4/3] overflow-hidden">
           {/* Foto de Fundo - Usa foto customizada ou thumbnail da música */}
           {data.musicCoverPhotoUrl ? (
@@ -246,7 +248,7 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
                 }
               }}
             />
-          ) : (
+        ) : (
             <img 
               src={data.selectedTrack.thumbnail} 
               alt="Music thumbnail" 
@@ -261,61 +263,61 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
           
           {/* Overlay Gradiente Delicado */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-          
+
           {/* Player Sobreposto na Parte Inferior - Estilo LovePanda */}
           <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-            <div className="mb-4">
+      <div className="mb-4">
               <h3 className="text-2xl font-bold mb-1 leading-tight">{displayTitle}</h3>
               <p className="text-white/90 text-sm">{displayArtist}</p>
               <div className="flex items-center mt-2">
                 <span className="text-white/80 text-xs bg-white/20 px-2 py-1 rounded-full">
-                  ✓
-                </span>
-              </div>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="mb-4">
+            ✓
+          </span>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="mb-4">
               <div className="flex justify-between text-xs text-white/70 mb-2">
-                <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(currentTime)}</span>
                 <span>{duration > 0 ? `-${formatTime(duration - currentTime)}` : '--:--'}</span>
-              </div>
+        </div>
               <div className="w-full bg-white/20 rounded-full h-1.5">
-                <div 
+          <div 
                   className="bg-white h-1.5 rounded-full transition-all duration-1000" 
-                  style={{ 
-                    width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' 
-                  }}
-                ></div>
-              </div>
-            </div>
+            style={{ 
+              width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' 
+            }}
+          ></div>
+        </div>
+      </div>
 
             {/* Controls - Estilo LovePanda */}
             <div className="flex items-center justify-center space-x-6">
-              <button
-                onClick={handleRestart}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
+        <button
+          onClick={handleRestart}
+          className="p-2 hover:bg-white/20 rounded-full transition-colors"
+        >
                 <SkipBack className="w-5 h-5 text-white" />
-              </button>
-              <button 
-                onClick={handlePlayPause}
+          </button>
+          <button 
+            onClick={handlePlayPause}
                 className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
-              >
-                {isPlaying ? (
+          >
+            {isPlaying ? (
                   <Pause className="w-6 h-6 text-pink-600" />
-                ) : (
+            ) : (
                   <Play className="w-6 h-6 text-pink-600 ml-1" />
-                )}
-              </button>
-              <button
-                onClick={handleNext}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <SkipForward className="w-5 h-5 text-white" />
-              </button>
-            </div>
-          </div>
+            )}
+          </button>
+          <button
+            onClick={handleNext}
+            className="p-2 hover:bg-white/20 rounded-full transition-colors"
+          >
+            <SkipForward className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
         </div>
       )}
 
@@ -336,7 +338,7 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
                 target.style.display = 'none'
               }}
             />
-          </div>
+        </div>
         )}
 
 
@@ -369,19 +371,22 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
             <div className="text-xl font-bold text-rose-600 mb-1">{timeData.seconds}</div>
             <div className="text-xs text-rose-500">Segundos</div>
           </div>
+          </div>
         </div>
-      </div>
 
-      {/* Mensagem Especial - Card Delicado */}
+      {/* Mensagem Especial - Card Estilo Spotify */}
       {data.specialMessage && (
-        <div className="px-6 py-5 mx-6 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl shadow-lg">
+        <div className="px-6 py-5 mx-6 bg-blue-500 rounded-2xl shadow-lg">
           <h3 className="text-white font-bold text-lg mb-3">Mensagem especial</h3>
-          <p className="text-white/95 text-sm leading-relaxed line-clamp-3">
+          <p className={`text-white text-sm leading-relaxed ${!showFullMessage && data.specialMessage.length > 100 ? 'line-clamp-3' : ''}`}>
             {data.specialMessage}
           </p>
           {data.specialMessage.length > 100 && (
-            <button className="mt-3 text-white/90 text-sm font-medium hover:text-white transition-colors bg-white/20 px-4 py-2 rounded-full">
-              Mostrar Mensagem
+            <button 
+              onClick={() => setShowFullMessage(!showFullMessage)}
+              className="mt-3 bg-white text-gray-900 px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+            >
+              {showFullMessage ? 'Ocultar Mensagem' : 'Mostrar Mensagem'}
             </button>
           )}
         </div>
@@ -429,8 +434,8 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
                       onLoad={() => {
                         console.log('[PreviewCard] Successfully loaded gallery image:', index)
                       }}
-                    />
-                  </div>
+            />
+          </div>
                 )
               })}
           </div>
@@ -453,7 +458,7 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
           }`}
         >
           {hasWrapped ? 'Vamos lá' : 'Em breve'}
-        </button>
+          </button>
       </div>
 
       {/* Hidden YouTube Player - Sempre presente no DOM */}

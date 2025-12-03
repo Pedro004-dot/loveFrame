@@ -23,12 +23,30 @@ export default function Step4Music({ selectedTrack, couplePhoto, onTrackSelect }
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Inicializar campos editáveis quando uma música é selecionada
+  // Preservar valores customizados se já existirem
   useEffect(() => {
     if (selectedTrack) {
-      setCustomTitle(selectedTrack.customTitle || selectedTrack.title)
-      setCustomArtist(selectedTrack.customArtist || selectedTrack.artist)
+      // Se o selectedTrack já tem valores customizados, usar eles
+      if (selectedTrack.customTitle !== undefined) {
+        setCustomTitle(selectedTrack.customTitle)
+      } else if (!customTitle) {
+        // Só inicializar se não houver valor local
+        setCustomTitle(selectedTrack.title)
+      }
+      
+      if (selectedTrack.customArtist !== undefined) {
+        setCustomArtist(selectedTrack.customArtist)
+      } else if (!customArtist) {
+        // Só inicializar se não houver valor local
+        setCustomArtist(selectedTrack.artist)
+      }
+    } else {
+      // Limpar quando não há música selecionada
+      setCustomTitle('')
+      setCustomArtist('')
     }
-  }, [selectedTrack])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTrack?.id]) // Usar apenas o ID para evitar resetar quando customTitle/customArtist mudam
 
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -62,9 +80,11 @@ export default function Step4Music({ selectedTrack, couplePhoto, onTrackSelect }
   const handleTitleChange = (value: string) => {
     setCustomTitle(value)
     if (selectedTrack) {
+      // Sempre preservar customTitle e customArtist ao atualizar
       onTrackSelect({
         ...selectedTrack,
-        customTitle: value
+        customTitle: value,
+        customArtist: selectedTrack.customArtist || selectedTrack.artist
       })
     }
   }
@@ -72,8 +92,10 @@ export default function Step4Music({ selectedTrack, couplePhoto, onTrackSelect }
   const handleArtistChange = (value: string) => {
     setCustomArtist(value)
     if (selectedTrack) {
+      // Sempre preservar customTitle e customArtist ao atualizar
       onTrackSelect({
         ...selectedTrack,
+        customTitle: selectedTrack.customTitle || selectedTrack.title,
         customArtist: value
       })
     }
@@ -95,10 +117,7 @@ export default function Step4Music({ selectedTrack, couplePhoto, onTrackSelect }
           Música
         </h2>
         <p className="text-lg text-gray-700">Escolha aquela música que representa a relação de vocês</p>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Pencil className="w-4 h-4" />
-          <span>Você poderá editar todas as informações depois.</span>
-        </div>
+       
       </div>
 
       {/* Música Selecionada com Edição */}

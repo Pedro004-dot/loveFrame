@@ -388,7 +388,7 @@ function CheckoutContent() {
                 Finalizar Pedido 💳
               </h1>
               <p className="text-purple-600 mt-1">
-                Passo 4 de 4 • Sua retrospectiva está quase pronta!
+                Passo 4 de 4 •
               </p>
             </div>
             
@@ -483,7 +483,7 @@ function CheckoutContent() {
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="seu@email.com"
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                   
@@ -496,7 +496,7 @@ function CheckoutContent() {
                       value={paymentData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       placeholder="(00) 00000-0000"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border  text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                 </div>

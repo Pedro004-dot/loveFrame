@@ -38,7 +38,7 @@ class OnboardingStorageService {
         ...data,
         updatedAt: new Date().toISOString()
       }
-      
+
       // Se não há novos arquivos para processar, preservar URLs base64 existentes
       if (!data.coupleGalleryPhotoFiles || data.coupleGalleryPhotoFiles.length === 0) {
         if (existingGalleryUrls.length > 0) {
@@ -105,9 +105,9 @@ class OnboardingStorageService {
               .catch((error) => {
                 console.error('[onboardingStorage] Error compressing image:', error)
                 // Fallback: usar conversão direta sem compressão
-                const reader = new FileReader()
-                reader.onload = () => {
-                  const base64 = reader.result as string
+        const reader = new FileReader()
+        reader.onload = () => {
+          const base64 = reader.result as string
                   convertedData[field] = null
                   convertedData[urlField] = base64
                   
@@ -301,7 +301,7 @@ class OnboardingStorageService {
           if (error.name === 'QuotaExceededError') {
             console.error('[onboardingStorage] localStorage quota exceeded. Clearing old data...')
             this.clearData()
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData))
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData))
           } else {
             throw error
           }

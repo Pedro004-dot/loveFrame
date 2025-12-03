@@ -39,8 +39,8 @@ export default function ViewerPage() {
     } catch (error) {
       console.error('Error loading wrapped templates:', error)
       setWrappedStories([])
+      }
     }
-  }
 
   useEffect(() => {
     loadRetrospective()
@@ -219,8 +219,8 @@ export default function ViewerPage() {
             return ''
           })
           .filter((url: string) => url !== '') // Filtrar URLs vazias
-      }
     }
+  }
 
     const onboarding: OnboardingData = {
       userName: retro.user_name || '',
@@ -384,7 +384,7 @@ export default function ViewerPage() {
                 <button
               onClick={handleDownload}
               className="flex flex-col items-center space-y-1 px-4 py-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md"
-            >
+                >
               <Download className="w-5 h-5 transition-transform hover:rotate-12" />
               <span className="text-xs font-medium">Download</span>
                 </button>
@@ -397,8 +397,8 @@ export default function ViewerPage() {
                 >
                   Criar a minha retrospectiva
                 </button>
-          </div>
-        </div>
+              </div>
+            </div>
       </footer>
       )}
 

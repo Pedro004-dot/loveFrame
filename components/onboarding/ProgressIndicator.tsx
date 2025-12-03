@@ -20,9 +20,6 @@ export default function ProgressIndicator({ currentStep, totalSteps }: ProgressI
           </div>
         ))}
       </div>
-      <p className="text-sm text-gray-500 text-center lg:text-left">
-        Etapa {currentStep} de {totalSteps}
-      </p>
     </div>
   )
 }

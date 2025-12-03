@@ -453,8 +453,12 @@ export default function CreatePage() {
           {/* Right Side - Live Preview (only from Step 3 onwards) - Desktop */}
           {currentStep >= 3 && (
             <div className="hidden lg:flex w-full lg:w-1/2 items-start justify-center lg:sticky lg:top-8">
-              <PreviewCard data={data} timeData={timeData} />
-            </div>
+            <PreviewCard 
+              data={data} 
+              timeData={timeData} 
+              showMusicPreview={currentStep !== 4} // Não mostrar preview durante busca no step 4
+            />
+          </div>
           )}
           
         </div>
@@ -508,7 +512,11 @@ export default function CreatePage() {
 
             {/* Preview Card */}
             <div className="max-h-[85vh] overflow-y-auto">
-              <PreviewCard data={data} timeData={timeData} />
+              <PreviewCard 
+                data={data} 
+                timeData={timeData} 
+                showMusicPreview={currentStep !== 4} // Não mostrar preview durante busca no step 4
+              />
             </div>
           </div>
         </div>
