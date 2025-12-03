@@ -1,6 +1,6 @@
 'use client'
 
-import type { WrappedConfig } from '@/types/wrapped'
+import type { WrappedConfig, CoupleQuizConfig, WordGameConfig, TimelineConfig, PhotoStoriesConfig, TimeStatsConfig, SpecialMessagesConfig, StarMapConfig, RouletteConfig } from '@/types/wrapped'
 import CoupleQuizStory from './templates/CoupleQuizStory'
 import WordGameStory from './templates/WordGameStory'
 import TimelineStory from './templates/TimelineStory'
@@ -19,28 +19,28 @@ interface StoryRendererProps {
 export default function StoryRenderer({ config, onComplete, onProgressPause }: StoryRendererProps) {
   switch (config.templateId) {
     case 'couple-quiz':
-      return <CoupleQuizStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <CoupleQuizStory config={config as CoupleQuizConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'word-game':
-      return <WordGameStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <WordGameStory config={config as WordGameConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'timeline':
-      return <TimelineStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <TimelineStory config={config as TimelineConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'photo-stories':
-      return <PhotoStoriesStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <PhotoStoriesStory config={config as PhotoStoriesConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'time-stats':
-      return <TimeStatsStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <TimeStatsStory config={config as TimeStatsConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'special-messages':
-      return <SpecialMessagesStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <SpecialMessagesStory config={config as SpecialMessagesConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'star-map':
-      return <StarMapStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <StarMapStory config={config as StarMapConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     case 'roulette':
-      return <RouletteStory config={config} onComplete={onComplete} onProgressPause={onProgressPause} />
+      return <RouletteStory config={config as RouletteConfig} onComplete={onComplete} onProgressPause={onProgressPause} />
     
     default:
       return (
