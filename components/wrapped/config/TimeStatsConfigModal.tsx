@@ -18,6 +18,7 @@ export default function TimeStatsConfigModal({
     }
     return {
       id: `time-stats-${Date.now()}`,
+      type: 'time-stats',
       templateId: 'time-stats',
       enabled: true,
       order: 0,

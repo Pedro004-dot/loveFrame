@@ -18,6 +18,7 @@ export default function WordGameConfigModal({
     }
     return {
       id: `word-game-${Date.now()}`,
+      type: 'word-game',
       templateId: 'word-game',
       enabled: true,
       order: 0,

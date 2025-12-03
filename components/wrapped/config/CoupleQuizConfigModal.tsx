@@ -18,6 +18,7 @@ export default function CoupleQuizConfigModal({
     }
     return {
       id: `couple-quiz-${Date.now()}`,
+      type: 'couple-quiz',
       templateId: 'couple-quiz',
       enabled: true,
       order: 0,

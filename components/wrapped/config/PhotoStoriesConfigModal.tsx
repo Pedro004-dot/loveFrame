@@ -19,6 +19,7 @@ export default function PhotoStoriesConfigModal({
     }
     return {
       id: `photo-stories-${Date.now()}`,
+      type: 'photo-stories',
       templateId: 'photo-stories',
       enabled: true,
       order: 0,

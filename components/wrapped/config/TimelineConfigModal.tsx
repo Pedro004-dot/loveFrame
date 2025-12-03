@@ -18,6 +18,7 @@ export default function TimelineConfigModal({
     }
     return {
       id: `timeline-${Date.now()}`,
+      type: 'timeline',
       templateId: 'timeline',
       enabled: true,
       order: 0,

@@ -18,6 +18,7 @@ export default function SpecialMessagesConfigModal({
     }
     return {
       id: `special-messages-${Date.now()}`,
+      type: 'special-messages',
       templateId: 'special-messages',
       enabled: true,
       order: 0,
