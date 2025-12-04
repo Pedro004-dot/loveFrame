@@ -15,7 +15,6 @@ import { supabase } from '@/lib/supabase'
 import { useTimeCalculator } from '@/hooks/useTimeCalculator'
 
 // Components
-import ProgressIndicator from '@/components/onboarding/ProgressIndicator'
 import PreviewCard from '@/components/onboarding/PreviewCard'
 import ProgressBar from '@/components/ui/ProgressBar'
 import PromoHeader from '@/components/ui/PromoHeader'
@@ -436,11 +435,6 @@ export default function CreatePage() {
           {/* Left Side - Form */}
           <div className={`space-y-8 ${currentStep >= 3 ? 'w-full lg:w-1/2' : 'w-full max-w-3xl mx-auto'}`}>
             <ProgressBar 
-              currentStep={currentStep} 
-              totalSteps={TOTAL_STEPS} 
-            />
-            
-            <ProgressIndicator 
               currentStep={currentStep} 
               totalSteps={TOTAL_STEPS} 
             />

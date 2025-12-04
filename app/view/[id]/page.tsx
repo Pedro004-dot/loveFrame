@@ -54,6 +54,20 @@ export default function ViewerPage() {
     }
   }, [retrospective?.id])
 
+  // Listen for share menu event from PreviewCard
+  useEffect(() => {
+    const handleOpenShareMenu = () => {
+      setShowShareMenu(true)
+    }
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('openShareMenu', handleOpenShareMenu)
+      return () => {
+        window.removeEventListener('openShareMenu', handleOpenShareMenu)
+      }
+    }
+  }, [])
+
   const loadRetrospective = async () => {
     try {
       // PRIMEIRO: Tentar buscar do localStorage (mais rápido e confiável)
@@ -310,31 +324,12 @@ export default function ViewerPage() {
   }
     
     return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-      {/* Header Simples */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-pink-100 shadow-sm transition-all duration-300">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 animate-in fade-in slide-in-from-left duration-500">
-              <Heart className="w-6 h-6 text-pink-600 transition-transform hover:scale-110 hover:rotate-12" />
-              <span className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                LoveFrame
-              </span>
-            </div>
-            <button
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              className="p-2 text-pink-600 hover:text-pink-700 hover:bg-pink-50 rounded-full transition-all duration-300 hover:scale-110 active:scale-95"
-              aria-label="Compartilhar"
-            >
-              <Share className="w-5 h-5 transition-transform hover:rotate-12" />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-900">
+      {/* Header removido - agora está no PreviewCard */}
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 pb-32">
-        <div className="max-w-sm mx-auto">
+      <main className="container mx-auto px-4 py-4 pb-8">
+        <div className="max-w-sm mx-auto space-y-4">
           {showWrappedStories && wrappedStories.length > 0 ? (
             /* Stories Viewer Inline */
             <div className="opacity-0 animate-fade-in-up" style={{ animation: 'fadeInUp 0.6s ease-out forwards' }}>
@@ -348,7 +343,7 @@ export default function ViewerPage() {
             /* Preview Card */
             <div 
               id="retrospective-content" 
-              className="opacity-0 animate-fade-in-up"
+              className="opacity-0 animate-fade-in-up space-y-4"
               style={{
                 animation: 'fadeInUp 0.6s ease-out forwards'
               }}
@@ -363,37 +358,30 @@ export default function ViewerPage() {
                 }}
                 hasWrapped={wrappedStories.length > 0}
               />
-                </div>
+            </div>
               )}
             </div>
       </main>
 
-      {/* Footer de Compartilhamento Fixo - Hidden during stories */}
+      {/* Footer de Compartilhamento - Hidden during stories - Estilo Spotify */}
       {!showWrappedStories && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-pink-100 shadow-lg z-40 transition-all duration-300">
-        <div className="container mx-auto px-4 py-4">
+        <footer className="bg-gray-900 border-t border-gray-800 shadow-lg transition-all duration-300">
+        <div className="container mx-auto px-1 py-1">
           <div className="flex items-center justify-center space-x-4">
                 <button 
               onClick={() => setShowShareMenu(true)}
-              className="flex flex-col items-center space-y-1 px-4 py-2 text-pink-600 hover:text-pink-700 hover:bg-pink-50 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md"
+              className="flex flex-col items-center space-y-1 px-4 py-2 text-white hover:text-gray-300 hover:bg-gray-800 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
                 >
               <Share className="w-5 h-5 transition-transform hover:rotate-12" />
               <span className="text-xs font-medium">Compartilhar</span>
                 </button>
 
-                <button
-              onClick={handleDownload}
-              className="flex flex-col items-center space-y-1 px-4 py-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md"
-                >
-              <Download className="w-5 h-5 transition-transform hover:rotate-12" />
-              <span className="text-xs font-medium">Download</span>
-                </button>
               </div>
               
           <div className="text-center mt-3">
                 <button
                   onClick={() => router.push('/')}
-              className="text-sm text-pink-600 hover:text-pink-700 underline transition-colors duration-300 hover:scale-105"
+              className="text-sm text-pink-400 hover:text-pink-300 underline transition-colors duration-300 hover:scale-105"
                 >
                   Criar a minha retrospectiva
                 </button>

@@ -17,7 +17,7 @@ export default function Home() {
             {/* Main Headline */}
             <div className="space-y-4">
               <h2 className="text-5xl sm:text-6xl font-bold text-gray-900 leading-tight">
-                Crie a <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">Retrospectiva</span>
+               Crie a  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">Retrospectiva</span> <span className="text-black">do Seu Relacionamento</span>
                 <br />do Seu Relacionamento
               </h2>
               

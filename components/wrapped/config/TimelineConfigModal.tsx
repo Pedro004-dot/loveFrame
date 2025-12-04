@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Plus, Trash2, Calendar } from 'lucide-react'
+import { X, Plus, Trash2, Calendar, Upload, Image as ImageIcon } from 'lucide-react'
 import type { TimelineConfig, WrappedConfigModalProps } from '@/types/wrapped'
+import { compressImage, validateImageFile } from '@/utils/fileUpload'
+import { uploadToSupabaseStorage, getPublicUrl } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export default function TimelineConfigModal({
   isOpen,
@@ -70,6 +73,67 @@ export default function TimelineConfigModal({
         e.id === eventId ? { ...e, [field]: value } : e
       )
     })
+  }
+
+  const handleImageUpload = async (eventId: string, file: File) => {
+    if (!validateImageFile(file)) {
+      alert('Arquivo de imagem inválido. Use JPG, PNG ou WEBP (máx. 5MB)')
+      return
+    }
+
+    try {
+      // Show loading state
+      updateEvent(eventId, 'imageUrl', 'uploading...')
+
+      // Compress image first
+      const compressedBase64 = await compressImage(file, 1200, 1200, 0.8)
+      
+      // Convert base64 to blob for upload
+      const response = await fetch(compressedBase64)
+      const blob = await response.blob()
+      const compressedFile = new File([blob], file.name, { type: 'image/jpeg' })
+
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop()
+      const fileName = `timeline-${eventId}-${Date.now()}.${fileExt}`
+      const filePath = `wrapped/${retrospectiveId}/${fileName}`
+
+      const { error: uploadError } = await uploadToSupabaseStorage(
+        compressedFile,
+        'retrospectives',
+        filePath
+      )
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      // Get public URL
+      const publicUrl = getPublicUrl('retrospectives', filePath)
+
+      // Create media file record
+      const supabase = getSupabaseClient()
+      await supabase.from('media_files').insert({
+        retrospective_id: retrospectiveId,
+        file_type: 'image',
+        original_name: file.name,
+        storage_path: filePath,
+        storage_bucket: 'retrospectives',
+        public_url: publicUrl,
+        file_size: compressedFile.size
+      })
+
+      // Update event with image URL
+      updateEvent(eventId, 'imageUrl', publicUrl)
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      alert('Erro ao fazer upload da imagem. Tente novamente.')
+      updateEvent(eventId, 'imageUrl', '')
+    }
+  }
+
+  const removeImage = (eventId: string) => {
+    updateEvent(eventId, 'imageUrl', '')
   }
 
   const handleSave = () => {
@@ -184,14 +248,60 @@ export default function TimelineConfigModal({
                     />
 
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">URL da Imagem (opcional)</label>
-                      <input
-                        type="url"
-                        value={event.imageUrl || ''}
-                        onChange={(e) => updateEvent(event.id, 'imageUrl', e.target.value)}
-                        placeholder="https://..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-black placeholder:text-gray-500"
-                      />
+                      <label className="block text-xs text-gray-500 mb-2">Foto do Evento (opcional)</label>
+                      
+                      {event.imageUrl && event.imageUrl !== 'uploading...' ? (
+                        <div className="relative">
+                          <img
+                            src={event.imageUrl}
+                            alt={event.title}
+                            className="w-full h-48 object-cover rounded-lg mb-2 border-2 border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(event.id)}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          {event.imageUrl === 'uploading...' ? (
+                            <div className="flex flex-col items-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2"></div>
+                              <p className="text-sm text-gray-500">Fazendo upload...</p>
+                            </div>
+                          ) : (
+                            <>
+                              <label
+                                htmlFor={`image-upload-${event.id}`}
+                                className="cursor-pointer flex flex-col items-center"
+                              >
+                                <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                                <span className="text-sm text-gray-600 font-medium">
+                                  Clique para fazer upload
+                                </span>
+                                <span className="text-xs text-gray-500 mt-1">
+                                  JPG, PNG ou WEBP (máx. 5MB)
+                                </span>
+                              </label>
+                              <input
+                                id={`image-upload-${event.id}`}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0]
+                                  if (file) {
+                                    handleImageUpload(event.id, file)
+                                  }
+                                }}
+                                className="hidden"
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

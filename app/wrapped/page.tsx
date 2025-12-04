@@ -19,6 +19,21 @@ export default function WrappedPage() {
   const [wantsWrapped, setWantsWrapped] = useState(true)
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null)
 
+  // Load wrapped choice from localStorage on mount
+  useEffect(() => {
+    const storedData = localStorage.getItem('onboardingData')
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData)
+        if (data.wrappedAddon !== undefined) {
+          setWantsWrapped(data.wrappedAddon)
+        }
+      } catch (error) {
+        console.error('Error loading wrapped choice:', error)
+      }
+    }
+  }, [])
+
   const wrappedFeatures: WrappedFeature[] = [
     {
       id: 'gallery',

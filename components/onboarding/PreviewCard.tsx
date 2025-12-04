@@ -1,7 +1,7 @@
 'use client'
 
 import type { OnboardingData, TimeData, YouTubeVideo } from '@/types/onboarding'
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Share } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 
 interface PreviewCardProps {
@@ -212,171 +212,205 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
   const displayArtist = data.selectedTrack ? (data.selectedTrack.customArtist || data.selectedTrack.artist) : ''
 
   return (
-    <div className="w-full max-w-sm mx-auto space-y-0 max-h-[85vh] overflow-y-auto bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 rounded-3xl shadow-2xl overflow-hidden">
+    <div className="w-full max-w-sm mx-auto space-y-4">
       
-      {/* Header Fixo - Delicado e Romântico */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-pink-100 px-6 py-4 flex items-center justify-between">
-        <button className="text-pink-400 hover:text-pink-600 transition-colors">
-          {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Header - Estilo Spotify: SETA - TÍTULO - EMOJI - COMPARTILHAR */}
+      <div className="bg-gray-900 px-4 py-3 flex items-center justify-between rounded-t-2xl">
+        <button className="text-white hover:text-gray-300 transition-colors">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg> */}
+          </svg>
         </button>
-        <h1 className="text-pink-600 font-semibold text-base text-center flex-1">
+        <h1 className="text-white font-semibold text-base text-center flex-1">
           {data.giftTitle || 'Juntos para sempre'} ❤️
         </h1>
-        <button className="text-pink-400 hover:text-pink-600 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-          </svg>
-          </button>
+        <button 
+          onClick={() => {
+            // Trigger share - this will be handled by parent component
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('openShareMenu'))
+            }
+          }}
+          className="text-white hover:text-gray-300 transition-colors"
+          aria-label="Compartilhar"
+        >
+          <Share className="w-6 h-6" />
+        </button>
       </div>
 
-      {/* Hero Card - Foto da Música com Player Sobreposto (Estilo Spotify/LovePanda) */}
+      {/* Hero Card - Foto da Música com Player Sobreposto (Estilo Spotify) */}
       {data.selectedTrack && showMusicPreview && (
-        <div className="relative w-full aspect-[4/3] overflow-hidden">
-          {/* Foto de Fundo - Usa foto customizada ou thumbnail da música */}
+        <div className="relative w-full h-[60vh] min-h-[400px] overflow-hidden rounded-2xl mb-4">
+          {/* Foto de Fundo com Blur - Estilo Spotify */}
           {data.musicCoverPhotoUrl ? (
-            <img 
-              src={data.musicCoverPhotoUrl} 
-              alt="Music cover" 
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Se a imagem falhar, usar thumbnail como fallback
-                const target = e.target as HTMLImageElement
-                if (data.selectedTrack?.thumbnail) {
-                  target.src = data.selectedTrack.thumbnail
-                }
-              }}
-            />
-        ) : (
-            <img 
-              src={data.selectedTrack.thumbnail} 
-              alt="Music thumbnail" 
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Se o thumbnail também falhar, usar placeholder
-                const target = e.target as HTMLImageElement
-                target.style.display = 'none'
-              }}
-            />
+            <div className="absolute inset-0">
+              <img 
+                src={data.musicCoverPhotoUrl} 
+                alt="Music cover" 
+                className="w-full h-full object-cover scale-110"
+                style={{ filter: 'blur(0.5px)' }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  if (data.selectedTrack?.thumbnail) {
+                    target.src = data.selectedTrack.thumbnail
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="absolute inset-0">
+              <img 
+                src={data.selectedTrack.thumbnail} 
+                alt="Music thumbnail" 
+                className="w-full h-full object-cover scale-110"
+                style={{ filter: 'blur(20px)' }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                }}
+              />
+            </div>
           )}
           
-          {/* Overlay Gradiente Delicado */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          {/* Overlay Escuro Sutil - Garantir que não vaze para outras seções */}
+          <div className="absolute inset-0 bg-black/40 rounded-2xl" />
 
-          {/* Player Sobreposto na Parte Inferior - Estilo LovePanda */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-      <div className="mb-4">
-              <h3 className="text-2xl font-bold mb-1 leading-tight">{displayTitle}</h3>
-              <p className="text-white/90 text-sm">{displayArtist}</p>
-              <div className="flex items-center mt-2">
-                <span className="text-white/80 text-xs bg-white/20 px-2 py-1 rounded-full">
-            ✓
-          </span>
-        </div>
-      </div>
+          {/* Conteúdo Sobreposto - Estilo Spotify */}
+          <div className="absolute inset-0 flex flex-col justify-end p-6 pb-16 text-white rounded-2xl">
+            {/* Controles do Player - Primeiro */}
+            <div className="space-y-4 mb-6">
+              {/* Progress Bar - Estilo Spotify */}
+              <div>
+                <div className="flex justify-between text-sm text-white/80 mb-2">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{duration > 0 ? `-${formatTime(duration - currentTime)}` : '--:--'}</span>
+                </div>
+                <div className="w-full bg-white/30 rounded-full h-1">
+                  <div 
+                    className="bg-white h-1 rounded-full transition-all duration-1000" 
+                    style={{ 
+                      width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' 
+                    }}
+                  ></div>
+                </div>
+              </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-              <div className="flex justify-between text-xs text-white/70 mb-2">
-          <span>{formatTime(currentTime)}</span>
-                <span>{duration > 0 ? `-${formatTime(duration - currentTime)}` : '--:--'}</span>
-        </div>
-              <div className="w-full bg-white/20 rounded-full h-1.5">
-          <div 
-                  className="bg-white h-1.5 rounded-full transition-all duration-1000" 
-            style={{ 
-              width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' 
-            }}
-          ></div>
-        </div>
-      </div>
+              {/* Controls - Estilo Spotify */}
+              <div className="flex items-center justify-center gap-8">
+                <button
+                  onClick={handleRestart}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <SkipBack className="w-6 h-6 text-white" />
+                </button>
+                <button 
+                  onClick={handlePlayPause}
+                  className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 text-pink-600" />
+                  ) : (
+                    <Play className="w-8 h-8 text-pink-600 ml-1" />
+                  )}
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <SkipForward className="w-6 h-6 text-white" />
+                </button>
+              </div>
+            </div>
 
-            {/* Controls - Estilo LovePanda */}
-            <div className="flex items-center justify-center space-x-6">
-        <button
-          onClick={handleRestart}
-          className="p-2 hover:bg-white/20 rounded-full transition-colors"
-        >
-                <SkipBack className="w-5 h-5 text-white" />
-          </button>
-          <button 
-            onClick={handlePlayPause}
-                className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
-          >
-            {isPlaying ? (
-                  <Pause className="w-6 h-6 text-pink-600" />
-            ) : (
-                  <Play className="w-6 h-6 text-pink-600 ml-1" />
-            )}
-          </button>
-          <button
-            onClick={handleNext}
-            className="p-2 hover:bg-white/20 rounded-full transition-colors"
-          >
-            <SkipForward className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </div>
+            {/* Informações da Música - Abaixo dos Controles */}
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="text-2xl font-bold leading-tight">{displayTitle}</h3>
+                
+              </div>
+              <p className="text-lg text-white/90">{displayArtist}</p>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Sobre o Casal - Layout Delicado e Romântico */}
-      <div className="px-6 py-6 bg-white/60 backdrop-blur-sm">
-        <h2 className="text-gray-800 font-semibold text-lg mb-5">Sobre o casal</h2>
-        
-        {/* Foto Opcional Acima do Contador */}
-        {data.timeCounterPhotoUrl && (
-          <div className="mb-5 rounded-2xl overflow-hidden shadow-lg">
+      {/* Sobre o Casal - Estilo Spotify (Fundo Escuro) */}
+      <div className="bg-gray-800 rounded-2xl overflow-hidden">
+        {/* Foto com Título Sobreposto */}
+        {data.timeCounterPhotoUrl ? (
+          <div className="relative">
             <img 
               src={data.timeCounterPhotoUrl} 
               alt="Couple photo" 
-              className="w-full h-56 object-cover"
+              className="w-full h-64 object-cover"
               onError={(e) => {
-                // Se a imagem falhar, esconder o elemento
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'
               }}
             />
-        </div>
+            {/* Título sobreposto na foto */}
+            <div className="absolute top-4 left-4">
+              <h2 className="text-white font-bold text-xl drop-shadow-lg">Sobre o casal</h2>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 py-4">
+            <h2 className="text-white font-bold text-xl mb-6">Sobre o casal</h2>
+          </div>
         )}
 
+        {/* Conteúdo abaixo da foto */}
+        <div className="px-6 py-6">
+          {/* Nomes e Data */}
+          {data.userName && data.partnerName && (
+            <div className="mb-6">
+              <h3 className="text-white text-2xl font-bold mb-1">
+                {data.userName} e {data.partnerName}
+              </h3>
+              {data.relationshipStart && (
+                <p className="text-gray-400 text-sm">
+                  Juntos desde {new Date(data.relationshipStart).getFullYear()}
+                </p>
+              )}
+            </div>
+          )}
 
-        {/* Contador de Tempo - Cards Delicados */}
+        {/* Contador de Tempo - Grid Estilo Spotify */}
         <div className="grid grid-cols-3 gap-3 mb-3">
-          <div className="bg-gradient-to-br from-pink-100 to-rose-100 rounded-2xl p-4 text-center shadow-sm border border-pink-200/50">
-            <div className="text-3xl font-bold text-pink-700 mb-1">{timeData.years}</div>
-            <div className="text-xs text-pink-600 font-medium">Anos</div>
+          <div className="bg-pink-500/20 border border-pink-500/30 rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-pink-400 mb-1">{timeData.years}</div>
+            <div className="text-xs text-pink-300 font-medium">Anos</div>
           </div>
-          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-4 text-center shadow-sm border border-purple-200/50">
-            <div className="text-3xl font-bold text-purple-700 mb-1">{timeData.months}</div>
-            <div className="text-xs text-purple-600 font-medium">Meses</div>
+          <div className="bg-purple-500/20 border border-purple-500/30 rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-purple-400 mb-1">{timeData.months}</div>
+            <div className="text-xs text-purple-300 font-medium">Meses</div>
           </div>
-          <div className="bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl p-4 text-center shadow-sm border border-rose-200/50">
-            <div className="text-3xl font-bold text-rose-700 mb-1">{timeData.days}</div>
-            <div className="text-xs text-rose-600 font-medium">Dias</div>
+          <div className="bg-pink-500/20 border border-pink-500/30 rounded-xl p-4 text-center">
+            <div className="text-3xl font-bold text-pink-400 mb-1">{timeData.days}</div>
+            <div className="text-xs text-pink-300 font-medium">Dias</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-3 text-center shadow-sm border border-pink-100">
-            <div className="text-xl font-bold text-pink-600 mb-1">{timeData.hours}</div>
-            <div className="text-xs text-pink-500">Horas</div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 text-center shadow-sm border border-purple-100">
-            <div className="text-xl font-bold text-purple-600 mb-1">{timeData.minutes}</div>
-            <div className="text-xs text-purple-500">Minutos</div>
-          </div>
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl p-3 text-center shadow-sm border border-rose-100">
-            <div className="text-xl font-bold text-rose-600 mb-1">{timeData.seconds}</div>
-            <div className="text-xs text-rose-500">Segundos</div>
-          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-purple-500/20 border border-purple-500/30 rounded-xl p-3 text-center">
+              <div className="text-xl font-bold text-purple-400 mb-1">{timeData.hours}</div>
+              <div className="text-xs text-purple-300">Horas</div>
+            </div>
+            <div className="bg-pink-500/20 border border-pink-500/30 rounded-xl p-3 text-center">
+              <div className="text-xl font-bold text-pink-400 mb-1">{timeData.minutes}</div>
+              <div className="text-xs text-pink-300">Minutos</div>
+            </div>
+            <div className="bg-purple-500/20 border border-purple-500/30 rounded-xl p-3 text-center">
+              <div className="text-xl font-bold text-purple-400 mb-1">{timeData.seconds}</div>
+              <div className="text-xs text-purple-300">Segundos</div>
+            </div>
           </div>
         </div>
+      </div>
 
       {/* Mensagem Especial - Card Estilo Spotify */}
       {data.specialMessage && (
-        <div className="px-6 py-5 mx-6 bg-blue-500 rounded-2xl shadow-lg">
+        <div className="px-6 py-5 bg-blue-500 rounded-2xl shadow-lg">
           <h3 className="text-white font-bold text-lg mb-3">Mensagem especial</h3>
           <p className={`text-white text-sm leading-relaxed ${!showFullMessage && data.specialMessage.length > 100 ? 'line-clamp-3' : ''}`}>
             {data.specialMessage}
@@ -392,10 +426,10 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
         </div>
       )}
 
-      {/* Galeria de Fotos do Casal - Layout Horizontal Delicado */}
+      {/* Galeria de Fotos do Casal - Estilo Spotify (Fundo Escuro) */}
       {data.coupleGalleryPhotoUrls && Array.isArray(data.coupleGalleryPhotoUrls) && data.coupleGalleryPhotoUrls.length > 0 && (
-        <div className="px-6 py-5 bg-white/60 backdrop-blur-sm">
-          <h3 className="text-gray-800 font-semibold text-lg mb-4">
+        <div className="px-6 py-5 bg-gray-800 rounded-2xl">
+          <h3 className="text-white font-semibold text-lg mb-4">
             Conheça {data.userName && data.partnerName ? `${data.userName} e ${data.partnerName}` : 'o casal'}
           </h3>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -415,7 +449,7 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
                     <img 
                       src={url} 
                       alt={`Gallery photo ${index + 1}`}
-                      className="w-28 h-28 object-cover rounded-2xl shadow-md border-2 border-pink-100"
+                      className="w-28 h-28 object-cover rounded-xl shadow-lg border-2 border-gray-700"
                       onError={(e) => {
                         // Se a imagem falhar, logar o erro mas não esconder imediatamente
                         const target = e.target as HTMLImageElement
@@ -442,8 +476,8 @@ export default function PreviewCard({ data, timeData, onWrappedClick, hasWrapped
         </div>
       )}
 
-      {/* CTA - Seu Relacionamento Wrapped - Delicado */}
-      <div className="px-6 py-8 bg-gradient-to-br from-pink-500 via-purple-500 to-rose-500 text-center rounded-b-3xl">
+      {/* CTA - Seu Relacionamento Wrapped - Estilo Spotify */}
+      <div className="px-6 py-8 bg-gradient-to-br from-pink-500 via-purple-500 to-rose-500 text-center rounded-b-2xl">
         <h2 className="text-white text-2xl font-bold mb-2 leading-tight">
           Seu Relacionamento<br />Wrapped
         </h2>
